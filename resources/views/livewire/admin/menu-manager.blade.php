@@ -1,0 +1,76 @@
+<div>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Manajemen Menu') }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg px-4 py-4">
+
+                <!-- Tombol untuk membuka modal tambah menu -->
+                <button wire:click="create()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-3">
+                    Tambah Menu Baru
+                </button>
+
+                <!-- Menampilkan pesan sukses setelah operasi -->
+                @if (session()->has('message'))
+                    <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md my-3" role="alert">
+                        <div class="flex">
+                            <div>
+                                <p class="text-sm">{{ session('message') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Modal untuk form tambah/edit menu -->
+                @if($isModalOpen)
+                    @include('livewire.admin.menu-form-modal')
+                @endif
+
+                <!-- Tabel untuk menampilkan semua menu -->
+                <table class="table-fixed w-full">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="px-4 py-2 w-20">No.</th>
+                            <th class="px-4 py-2">Gambar</th>
+                            <th class="px-4 py-2">Nama</th>
+                            <th class="px-4 py-2">Harga</th>
+                            <th class="px-4 py-2">Kategori</th>
+                            <th class="px-4 py-2">Status</th>
+                            <th class="px-4 py-2">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($menus as $index => $menu)
+                        <tr>
+                            <td class="border px-4 py-2 text-center">{{ $index + 1 }}</td>
+                            <td class="border px-4 py-2 text-center">
+                                <img src="{{ $menu->image ? asset('storage/' . $menu->image) : 'https://placehold.co/100x100/e2e8f0/e2e8f0?text=Food' }}" alt="{{ $menu->name }}" class="h-16 w-16 object-cover rounded-md mx-auto">
+                            </td>
+                            <td class="border px-4 py-2">{{ $menu->name }}</td>
+                            <td class="border px-4 py-2">Rp {{ number_format($menu->price, 0, ',', '.') }}</td>
+                            <td class="border px-4 py-2">{{ $menu->category }}</td>
+                            <td class="border px-4 py-2 text-center">
+                                <span class="{{ $menu->is_available ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800' }} text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                                    {{ $menu->is_available ? 'Tersedia' : 'Habis' }}
+                                </span>
+                            </td>
+                            <td class="border px-4 py-2 text-center">
+                                <button wire:click="edit({{ $menu->id }})" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">Edit</button>
+                                <button wire:click="delete({{ $menu->id }})" wire:confirm="Anda yakin ingin menghapus menu ini?" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Hapus</button>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td class="border px-4 py-2 text-center" colspan="7">Belum ada data menu.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
