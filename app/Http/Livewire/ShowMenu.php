@@ -5,64 +5,100 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Menu;
 use App\Models\Table;
-use Livewire\Attributes\Computed;
+use Illuminate\Support\Collection;
 
 class ShowMenu extends Component
 {
     public Table $table;
     public $cart = [];
 
-    /**
-     * Computed property untuk mengambil dan mengelompokkan menu.
-     * Hasilnya akan di-cache untuk performa yang lebih baik.
-     */
-    #[Computed]
-    public function menus()
-    {
-        return Menu::where('is_available', true)
-            ->orderBy('category')
-            ->get();
-    }
+    public Collection $categories;
+    public $activeCategory;
 
     public function mount(Table $table)
     {
         $this->table = $table;
-        // Ambil data keranjang dari session saat komponen dimuat.
         $this->cart = session('cart', []);
+
+        // Ambil semua kategori unik yang tersedia dari database.
+        $this->categories = Menu::where('is_available', true)->pluck('category')->unique();
+        // Tetapkan 'Semua' sebagai kategori aktif secara default.
+        $this->activeCategory = 'Semua';
     }
 
     public function render()
     {
+        // Mulai query untuk mengambil menu yang tersedia.
+        $query = Menu::where('is_available', true);
+
+        // Jika kategori yang aktif BUKAN 'Semua', tambahkan filter where.
+        if ($this->activeCategory !== 'Semua') {
+            $query->where('category', $this->activeCategory);
+        }
+
+        // Ambil data menu dan kirim ke view.
+        $menus = $query->orderBy('category')->get();
+
+        $totalPrice = collect($this->cart)->sum(fn($item) => $item['price'] * $item['quantity']);
+        $totalItems = collect($this->cart)->sum('quantity');
+
         return view('livewire.show-menu', [
-            'menus' => $this->menus() // Memanggil computed property dan mengirimkannya
+            'menus' => $menus,
+            'totalPrice' => $totalPrice,
+            'totalItems' => $totalItems,
         ])->layout('layouts.guest');
     }
 
-    public function addToCart($menuId)
+    // Fungsi untuk mengubah kategori aktif yang dipilih pengguna.
+    public function setActiveCategory(string $category): void
+    {
+        $this->activeCategory = $category;
+    }
+
+    public function addToCart(int $menuId): void
     {
         $menu = Menu::find($menuId);
         if (!$menu) return;
 
-        if (isset($this->cart[$menuId])) {
-            $this->cart[$menuId]['quantity']++;
-        } else {
+        // Jika item belum ada di keranjang, tambahkan. Jika sudah, panggil increment.
+        if (!isset($this->cart[$menuId])) {
             $this->cart[$menuId] = [
                 'name' => $menu->name,
                 'price' => $menu->price,
                 'quantity' => 1
             ];
+            $this->updateCartAndNotify($menu, "ditambahkan!");
+        } else {
+            $this->incrementQuantity($menuId);
         }
-
-        session(['cart' => $this->cart]);
-
-        // Kirim notifikasi ke browser menggunakan dispatch.
-        $this->dispatch('add-to-cart-notification', ['message' => "$menu->name ditambahkan ke keranjang!"]);
     }
 
-    /**
-     * PERBAIKAN: Menambahkan kembali method checkout yang hilang.
-     * Method ini akan menyimpan data ke sesi lalu mengarahkan ke halaman checkout.
-     */
+    public function incrementQuantity(int $menuId): void
+    {
+        if (isset($this->cart[$menuId])) {
+            $this->cart[$menuId]['quantity']++;
+            $this->updateCartAndNotify(Menu::find($menuId));
+        }
+    }
+
+    public function decrementQuantity(int $menuId): void
+    {
+        if (isset($this->cart[$menuId])) {
+            if ($this->cart[$menuId]['quantity'] > 1) {
+                $this->cart[$menuId]['quantity']--;
+            } else {
+                unset($this->cart[$menuId]);
+            }
+            $this->updateCartAndNotify(Menu::find($menuId));
+        }
+    }
+
+    private function updateCartAndNotify(Menu $menu, string $message = 'diperbarui!'): void
+    {
+        session(['cart' => $this->cart]);
+        $this->dispatch('add-to-cart-notification', ['message' => "$menu->name $message"]);
+    }
+
     public function checkout()
     {
         session([

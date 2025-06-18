@@ -1,29 +1,107 @@
 <?php
 
-namespace App\Models;
+namespace App\Http\Livewire;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-// PERBAIKAN: Menggunakan nama alias untuk menghindari konflik
-use Illuminate\Database\Eloquent\Relations\BelongsTo as BelongsToRelation;
+use Livewire\Component;
+use App\Models\Menu;
+use App\Models\Table;
+use Illuminate\Support\Collection;
 
-class OrderItem extends Model
+class ShowMenu extends Component
 {
-    use HasFactory;
+    public Table $table;
+    public $cart = [];
 
-    protected $fillable = [
-        'order_id',
-        'menu_id',
-        'quantity',
-        'price_at_order',
-    ];
+    public $categories;
+    public $activeCategory;
 
-    /**
-     * Mendapatkan menu yang terkait dengan item pesanan ini.
-     * PERBAIKAN: Menggunakan nama alias pada return type hint.
-     */
-    public function menu(): BelongsToRelation
+    public function mount(Table $table)
     {
-        return $this->belongsTo(Menu::class);
+        $this->table = $table;
+        $this->cart = session('cart', []);
+
+        // Ambil semua kategori yang tersedia dan tetapkan yang pertama sebagai aktif.
+        $this->categories = Menu::where('is_available', true)->pluck('category')->unique();
+        $this->activeCategory = $this->categories->first();
+    }
+
+    public function render()
+    {
+        // Ambil menu hanya dari kategori yang aktif.
+        $menus = Menu::where('is_available', true)
+            ->where('category', $this->activeCategory)
+            ->get();
+
+        $totalPrice = collect($this->cart)->sum(fn($item) => $item['price'] * $item['quantity']);
+        $totalItems = collect($this->cart)->sum('quantity');
+
+        return view('livewire.show-menu', [
+            'menus' => $menus,
+            'totalPrice' => $totalPrice,
+            'totalItems' => $totalItems,
+        ])->layout('layouts.guest');
+    }
+
+    // Fungsi untuk mengubah kategori yang aktif.
+    public function setActiveCategory($category)
+    {
+        $this->activeCategory = $category;
+    }
+
+    public function addToCart($menuId)
+    {
+        $menu = Menu::find($menuId);
+        if (!$menu) return;
+
+        // Jika item belum ada di keranjang, tambahkan. Jika sudah, panggil increment.
+        if (!isset($this->cart[$menuId])) {
+            $this->cart[$menuId] = [
+                'name' => $menu->name,
+                'price' => $menu->price,
+                'quantity' => 1
+            ];
+            $this->updateCartAndNotify($menu, "ditambahkan!");
+        } else {
+            $this->incrementQuantity($menuId);
+        }
+    }
+
+    // Fungsi untuk menambah jumlah item.
+    public function incrementQuantity($menuId)
+    {
+        if (isset($this->cart[$menuId])) {
+            $this->cart[$menuId]['quantity']++;
+            $this->updateCartAndNotify(Menu::find($menuId));
+        }
+    }
+
+    // Fungsi untuk mengurangi jumlah item.
+    public function decrementQuantity($menuId)
+    {
+        if (isset($this->cart[$menuId])) {
+            if ($this->cart[$menuId]['quantity'] > 1) {
+                $this->cart[$menuId]['quantity']--;
+            } else {
+                unset($this->cart[$menuId]);
+            }
+            $this->updateCartAndNotify(Menu::find($menuId));
+        }
+    }
+
+    // Helper untuk memperbarui sesi dan mengirim notifikasi.
+    private function updateCartAndNotify(Menu $menu, $message = 'diperbarui!')
+    {
+        session(['cart' => $this->cart]);
+        $this->dispatch('add-to-cart-notification', ['message' => "$menu->name $message"]);
+    }
+
+    public function checkout()
+    {
+        session([
+            'cart' => $this->cart,
+            'table_id' => $this->table->id
+        ]);
+
+        return $this->redirect(route('checkout'), navigate: true);
     }
 }
