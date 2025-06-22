@@ -9,14 +9,16 @@ class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
-     *
-     * @return void
      */
     public function run(): void
-{
-    $this->call([
-        AdminUserSeeder::class,
-        DummySalesSeeder::class, // <-- Panggil seeder yang baru ini
-    ]);
+    {
+        // Memanggil seeder lain secara berurutan
+        $this->call([
+            // PERBAIKAN: Menggunakan nama seeder yang benar sesuai file Anda
+            AdminUserSeeder::class,
+            TableSeeder::class,
+            MenuSeeder::class,
+            DummyDataSeeder::class,]);
+    }
 }
-}
+

@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Http\Livewire\Admin;
 
 use Livewire\Component;
@@ -74,6 +73,7 @@ class SalesReport extends Component
             $currentDate->addDay();
         }
         $this->salesDataForChart = $data;
+        
     }
 
     // Helper untuk menghitung rentang tanggal

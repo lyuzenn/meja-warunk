@@ -41,5 +41,9 @@
         @stack('modals')
 
         @livewireScripts
+
+        {{-- PERBAIKAN: Menambahkan @stack('scripts') di sini --}}
+        {{-- Ini akan merender semua skrip yang dikirim dari halaman lain --}}
+        @stack('scripts')
     </body>
 </html>

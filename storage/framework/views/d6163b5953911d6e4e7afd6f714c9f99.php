@@ -1,6 +1,8 @@
 <div class="bg-gray-200">
+    <!-- Container utama yang membatasi lebar seperti ponsel -->
     <div class="relative mx-auto max-w-sm min-h-screen bg-gray-100 shadow-2xl pb-28">
 
+        <!-- Header -->
         <header class="bg-amber-900 text-white shadow-lg sticky top-0 z-40 p-3 flex items-center">
             <a href="<?php echo e(route('menu.show', ['table' => $tableId])); ?>" class="text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
@@ -8,9 +10,12 @@
             <h1 class="font-bold text-xl tracking-wider text-center flex-grow">Rincian Pesanan</h1>
         </header>
 
+        <!-- Konten Utama -->
         <main class="p-4">
+            <!-- Kartu Utama yang Menggabungkan Semua Info -->
             <div class="bg-white rounded-lg shadow p-4 space-y-6">
 
+                <!-- Bagian Daftar Pesanan -->
                 <div>
                     <h2 class="font-bold text-lg mb-4">Pesanan Anda</h2>
                     <div class="space-y-4">
@@ -36,8 +41,10 @@
                     </a>
                 </div>
 
+                <!-- Pembatas -->
                 <hr>
 
+                <!-- Bagian Nama & Catatan -->
                 <div>
                      <div class="mb-4">
                         <label for="customerName" class="block text-sm font-medium text-gray-700">Nama Anda (Opsional)</label>
@@ -49,6 +56,7 @@
                     </div>
                 </div>
 
+                <!-- PERUBAHAN: Bagian Rincian Pembayaran dipindah ke sini -->
                 <div class="pt-4 border-t">
                     <h3 class="text-lg font-bold mb-3">Rincian Pembayaran</h3>
                     <div class="text-sm space-y-1">
@@ -71,6 +79,7 @@
         </main>
     </div>
 
+    <!-- PERUBAHAN: Bar Tombol Pesan (Floating) hanya berisi tombol -->
     <footer class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm z-50 p-4">
         <button wire:click="processOrder" wire:loading.attr="disabled" class="w-full bg-amber-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-amber-900 transition-transform transform hover:scale-105 disabled:bg-gray-400">
             <span wire:loading.remove wire:target="processOrder">Buat Pesanan</span>

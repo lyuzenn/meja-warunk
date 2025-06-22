@@ -1,6 +1,6 @@
 <div class="bg-gray-200">
     <!-- Container utama yang membatasi lebar seperti ponsel -->
-    <div class="relative mx-auto max-w-sm min-h-screen bg-gray-100 shadow-2xl">
+    <div class="relative mx-auto max-w-sm min-h-screen bg-gray-100 shadow-2xl pb-28">
 
         <!-- Header -->
         <header class="bg-amber-900 text-white shadow-lg sticky top-0 z-40 p-3 flex items-center">
@@ -76,14 +76,14 @@
                 </div>
 
             </div>
-
-            <!-- Tombol Buat Pesanan di luar kartu utama -->
-            <div class="mt-6">
-                <button wire:click="processOrder" wire:loading.attr="disabled" class="w-full bg-amber-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-900 transition-transform transform hover:scale-105 disabled:bg-gray-400">
-                    <span wire:loading.remove wire:target="processOrder">Buat Pesanan</span>
-                    <span wire:loading wire:target="processOrder">Memproses...</span>
-                </button>
-            </div>
         </main>
     </div>
+
+    <!-- Bar Tombol Pesan (Floating) -->
+    <footer class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm z-50 p-4">
+        <button wire:click="processOrder" wire:loading.attr="disabled" class="w-full bg-amber-800 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-amber-900 transition-transform transform hover:scale-105 disabled:bg-gray-400">
+            <span wire:loading.remove wire:target="processOrder">Buat Pesanan</span>
+            <span wire:loading wire:target="processOrder">Memproses...</span>
+        </button>
+    </footer>
 </div>

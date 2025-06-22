@@ -12,10 +12,6 @@ class OrderDashboard extends Component
 {
     public $orders;
 
-    /**
-     * PERBAIKAN:
-     * Listener untuk update status sekarang mendengarkan di channel 'admin-dashboard'.
-     */
     public function getListeners()
     {
         return [
@@ -38,41 +34,41 @@ class OrderDashboard extends Component
             ->get();
     }
 
+    /**
+     * PERBAIKAN: Method ini sekarang menerima data pesanan ($event)
+     * dan mengirimkan perintah notifikasi ke browser.
+     */
     public function handleNewOrder($event)
     {
-        Log::info('New order event received via Echo:', $event);
+        Log::info('New order event received:', $event);
         $this->loadOrders();
+
+        // Mengirim event ke browser dengan pesan yang dinamis
+        $this->dispatch('new-order-notification', [
+            'message' => 'Pesanan baru dari Meja ' . ($event['order']['meja']['table_number'] ?? 'N/A')
+        ]);
     }
 
     public function refreshOrderList($event)
     {
-        // Hanya refresh jika status order yang diupdate ada di daftar kita
-        if ($this->orders->contains('id', $event['id'])) {
-            Log::info('Order status update event received via Echo:', $event);
-            $this->loadOrders();
-        }
+        Log::info('Order status update event received:', $event);
+        $this->loadOrders();
     }
 
     public function updateOrderStatus($orderId, $status)
     {
-        $orderToUpdate = Order::find($orderId);
-        if (!$orderToUpdate) {
-            Log::error("Attempted to update a non-existent order with ID: {$orderId}");
+        $order = Order::find($orderId);
+        if (!$order) {
             return;
         }
 
         try {
-            $orderToUpdate->status = $status;
-            $orderToUpdate->save();
-
-            // Mengirim event yang sekarang akan ke 2 channel
-            broadcast(new OrderStatusUpdated($orderToUpdate))->toOthers();
-
-            // Langsung update UI di dashboard admin
+            $order->status = $status;
+            $order->save();
+            broadcast(new OrderStatusUpdated($order))->toOthers();
             $this->loadOrders();
-
         } catch (Throwable $e) {
-            Log::error('EXCEPTION during updateOrderStatus: ' . $e->getMessage());
+            Log::error('Failed to update or broadcast order status: ' . $e->getMessage());
         }
     }
 

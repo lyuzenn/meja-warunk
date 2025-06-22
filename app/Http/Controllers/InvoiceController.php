@@ -3,18 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf; // Pastikan Anda mengimpor fasad PDF
 
 class InvoiceController extends Controller
 {
+    /**
+     * Handle the incoming request.
+     */
     public function download(Order $order)
     {
-        // Pastikan order memiliki item
-        $order->load('items.menu');
+        // Memuat view 'invoice-pdf' dengan data pesanan ($order)
+        $pdf = Pdf::loadView('invoice-pdf', compact('order'));
 
-        $pdf = PDF::loadView('invoice-pdf', compact('order'));
-        
-        // Nama file: invoice-ORD-123.pdf
-        return $pdf->download('invoice-'.$order->midtrans_order_id.'.pdf');
+        // Mengatur nama file yang akan diunduh
+        $fileName = 'nota-' . $order->id . '-' . now()->format('Y-m-d') . '.pdf';
+
+        // Mengirimkan PDF ke browser untuk diunduh
+        return $pdf->download($fileName);
     }
 }

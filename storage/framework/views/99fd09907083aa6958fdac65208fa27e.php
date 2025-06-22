@@ -79,6 +79,10 @@ if (isset($__slots)) unset($__slots);
 
         <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::scripts(); ?>
 
+
+        
+        
+        <?php echo $__env->yieldPushContent('scripts'); ?>
     </body>
 </html>
 <?php /**PATH C:\Users\Lyuzenn\laravel\meja-warunk\resources\views/layouts/app.blade.php ENDPATH**/ ?>
