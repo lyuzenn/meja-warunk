@@ -27,8 +27,8 @@ Route::get('/', function() {
 Route::get('/meja/{table:table_number}', ShowMenu::class)->name('menu.show');
 
 // Halaman untuk proses checkout
-Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout');
-Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
+Route::get('/checkout', \App\Http\Livewire\CheckoutPage::class)->name('checkout');
+
 
 // Halaman untuk pelanggan melihat status pesanan mereka secara real-time
 Route::get('/order/{order}/status', OrderStatusPage::class)->name('order.finish');

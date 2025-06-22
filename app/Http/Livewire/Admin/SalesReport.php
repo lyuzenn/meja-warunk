@@ -90,6 +90,6 @@ class SalesReport extends Component
     public function render()
     {
         return view('livewire.admin.sales-report')
-                ->layout('layouts.app');
+            ->layout('layouts.app');
     }
 }

@@ -1,52 +1,66 @@
+<div class="bg-gray-200">
+    <!-- Container utama yang membatasi lebar seperti ponsel -->
+    <div class="relative mx-auto max-w-sm min-h-screen bg-gray-100 shadow-2xl">
 
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Status Pesanan - MejaWarunk</title>
-    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-</head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="container mx-auto max-w-md p-4">
-        <div class="bg-white rounded-lg shadow-lg p-8 text-center">
-            <!--[if BLOCK]><![endif]--><?php if($order->status == 'paid'): ?>
-                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-800 mb-2">Pembayaran Diterima!</h1>
-                <p class="text-gray-600">Pesanan Anda sedang kami siapkan. Mohon ditunggu.</p>
-            <?php elseif($order->status == 'processing'): ?>
-                 <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-800 mb-2">Pesanan Diproses</h1>
-                <p class="text-gray-600">Harap sabar, pesanan Anda sedang dibuat oleh koki terbaik kami!</p>
-            <?php elseif($order->status == 'completed'): ?>
-                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-800 mb-2">Pesanan Selesai!</h1>
-                <p class="text-gray-600 mb-6">Terima kasih telah memesan. Silakan berikan ulasan Anda untuk membantu kami.</p>
-                <a href="<?php echo e(route('order.rate', $order->id)); ?>" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg text-lg inline-block">
-                    Beri Ulasan & Dapatkan Nota
-                </a>
-            <?php else: ?> 
-                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-800 mb-2">Pesanan Dibatalkan</h1>
-                <p class="text-gray-600">Terjadi masalah dengan pesanan Anda.</p>
-            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
-
-            <div class="mt-6 border-t pt-4 text-sm text-gray-500">
-                <p>ID Pesanan Anda: <span class="font-semibold"><?php echo e($order->midtrans_order_id); ?></span></p>
+        <!-- Konten Utama -->
+        <main class="p-6 text-center">
+            <!-- Ikon Centang -->
+            <div class="w-16 h-16 bg-green-100 rounded-full mx-auto flex items-center justify-center">
+                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             </div>
-        </div>
-    </div>
-</body>
-</html>
 
+            <!-- Pesan Terima Kasih -->
+            <h1 class="text-2xl font-bold text-gray-800 mt-4">Terima Kasih!</h1>
+            <p class="text-gray-600 mt-2">Pesanan Anda telah kami terima dan sedang diproses.</p>
+
+            <!-- Status Pesanan (Bisa Real-time) -->
+            <div class="mt-8 text-left bg-white p-4 rounded-lg shadow">
+                <h2 class="font-bold text-lg mb-4">Status Pesanan #<?php echo e($order->id); ?></h2>
+                <div class="flex items-center">
+                    <span class="font-semibold mr-2">Status Saat Ini:</span>
+                    <span
+                        wire:poll.5s="refreshOrder"
+                        class="text-sm font-bold uppercase px-3 py-1 rounded-full
+                        <?php switch($order->status):
+                            case ('paid'): ?> bg-blue-200 text-blue-800 <?php break; ?>
+                            <?php case ('processing'): ?> bg-yellow-200 text-yellow-800 <?php break; ?>
+                            <?php case ('completed'): ?> bg-green-200 text-green-800 <?php break; ?>
+                            <?php default: ?> bg-gray-200 text-gray-800
+                        <?php endswitch; ?>">
+                        <?php echo e($order->status); ?>
+
+                    </span>
+                </div>
+            </div>
+
+             <!-- Ringkasan Pesanan -->
+            <div class="mt-4 text-left bg-white p-4 rounded-lg shadow">
+                <h3 class="font-bold mb-2">Ringkasan:</h3>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $order->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <li class="flex justify-between">
+                            <span><?php echo e($item->quantity); ?>x <?php echo e($item->menu->name); ?></span>
+                            <span>Rp <?php echo e(number_format($item->price_at_order * $item->quantity, 0, ',', '.')); ?></span>
+                        </li>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
+                </ul>
+                <hr class="my-2">
+                <div class="flex justify-between font-bold">
+                    <span>Total</span>
+                    <span>Rp <?php echo e(number_format($order->total_price, 0, ',', '.')); ?></span>
+                </div>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <div class="mt-8 space-y-4">
+                <a href="<?php echo e(route('menu.show', ['table' => $order->table_id])); ?>" class="block w-full bg-amber-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-900">
+                    Pesan Lagi
+                </a>
+                 <a href="<?php echo e(route('order.invoice', $order->id)); ?>" class="block w-full bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300">
+                    Unduh Nota
+                </a>
+            </div>
+        </main>
+    </div>
+</div>
 <?php /**PATH C:\Users\Lyuzenn\laravel\meja-warunk\resources\views/livewire/order-status-page.blade.php ENDPATH**/ ?>

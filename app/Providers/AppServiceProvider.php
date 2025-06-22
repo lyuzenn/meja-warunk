@@ -9,6 +9,7 @@ use App\Http\Livewire\Admin\SalesReport;
 use App\Http\Livewire\ShowMenu;
 use App\Http\Livewire\RatingForm;
 use Illuminate\Support\ServiceProvider;
+use App\Http\Livewire\CheckoutPage;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,5 +35,6 @@ class AppServiceProvider extends ServiceProvider
     Livewire::component('admin.sales-report', SalesReport::class);
     Livewire::component('show-menu', ShowMenu::class);
     Livewire::component('rating-form', RatingForm::class);
+    Livewire::component('checkout-page', CheckoutPage::class);
 }
 }

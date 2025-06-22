@@ -1,5 +1,3 @@
-{{-- File: resources/views/livewire/admin/sales-report.blade.php --}}
-{{-- Ganti seluruh isi file ini dengan kode di bawah. --}}
 <div>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -30,7 +28,7 @@
                 <div class="bg-white p-6 rounded-lg shadow-sm"><h3 class="text-sm font-medium text-gray-500">Nilai Pesanan Rata-rata</h3><p class="mt-1 text-3xl font-semibold text-gray-900">Rp {{ number_format($averageOrderValue, 0, ',', '.') }}</p></div>
             </div>
 
-            <!-- PERBAIKAN: Logika JavaScript dipisahkan agar lebih bersih -->
+            <!-- Grafik Tren Penjualan -->
             <div class="bg-white p-6 rounded-lg shadow-sm" x-data="salesChart">
                 <h3 class="font-semibold text-lg mb-4">Tren Penjualan</h3>
                 <div wire:ignore style="height: 400px;">
@@ -39,7 +37,7 @@
             </div>
 
 
-            <!-- Top Selling Menus -->
+            <!-- Tabel Menu Terlaris -->
             <div class="bg-white p-6 rounded-lg shadow-sm">
                 <h3 class="font-semibold text-lg mb-4">Menu Terlaris</h3>
                 <div class="overflow-x-auto">
@@ -68,7 +66,6 @@
         </div>
     </div>
 
-    {{-- PERBAIKAN: Logika Alpine.js dipindah ke sini dan dibuat lebih solid --}}
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -76,8 +73,8 @@
             Alpine.data('salesChart', () => ({
                 chart: null,
                 init() {
-                    // PERBAIKAN: Menggunakan Js::from() untuk injeksi data yang aman
-                    let initialData = {{ Illuminate\Support\Js::from($this->salesDataForChart) }};
+                    // Menggunakan Js::from() untuk injeksi data yang aman dari backend ke frontend
+                    let initialData = @json($this->salesDataForChart);
 
                     this.chart = new Chart(this.$refs.canvas, {
                         type: 'line',
@@ -86,9 +83,8 @@
                             datasets: [{
                                 label: 'Pendapatan',
                                 data: initialData.data,
-                                // Warna baru yang lebih "gonjreng"
-                                backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                                borderColor: 'rgba(255, 159, 64, 1)',
+                                backgroundColor: 'rgba(219, 139, 44, 0.2)',
+                                borderColor: 'rgba(219, 139, 44, 1)',
                                 borderWidth: 2,
                                 tension: 0.4,
                                 fill: true,
@@ -101,7 +97,7 @@
                         }
                     });
 
-                    // Dengarkan event 'updateChart' dari komponen Livewire
+                    // Dengarkan event 'updateChart' dari komponen Livewire untuk update grafik
                     Livewire.on('updateChart', ({ data }) => {
                         if (!data) return;
                         this.chart.data.labels = data.labels;
