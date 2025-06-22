@@ -20,7 +20,7 @@
             </h2>
 
             <div class="flex items-center space-x-6">
-                <button onclick="document.getElementById('notification-sound').play().catch(e => alert('Browser memblokir suara. Coba aktifkan suara lalu tunggu notifikasi.'))" class="text-sm font-medium text-blue-600 hover:underline">
+                <button onclick="playTestSound()" class="text-sm font-medium text-blue-600 hover:underline">
                     Tes Suara
                 </button>
 
@@ -40,7 +40,7 @@
             show = true;
             message = $event.detail.message;
             if (localStorage.getItem('soundEnabled') === 'true') {
-                $nextTick(() => document.getElementById('notification-sound').play().catch(e => console.error('Gagal memutar notifikasi otomatis:', e)));
+                document.getElementById('notification-sound').play().catch(e => console.error('Gagal memutar notifikasi otomatis:', e));
             }
             setTimeout(() => show = false, 7000)
         "
@@ -57,7 +57,6 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                
                 <div wire:poll.5s="loadOrders" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $orders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <?php
@@ -148,6 +147,7 @@
 
     <?php $__env->startPush('scripts'); ?>
     <script>
+        // Mendefinisikan fungsi tes suara di scope global agar bisa dipanggil oleh onclick
         function playTestSound() {
             console.log('Tombol Tes Suara diklik!');
             const audio = document.getElementById('notification-sound');
