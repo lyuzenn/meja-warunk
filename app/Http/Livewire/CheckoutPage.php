@@ -5,7 +5,6 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Menu;
 use App\Models\Order;
-use App\Events\OrderPaid; // <-- Import event OrderPaid
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -20,7 +19,7 @@ class CheckoutPage extends Component
     public $subtotal = 0;
     public $taxAmount = 0;
     public $totalPrice = 0;
-    public $taxRate = 0.11; // Contoh PPN 11%
+    public $taxRate = 0.11;
 
     public function mount()
     {
@@ -77,14 +76,34 @@ class CheckoutPage extends Component
             'notes' => 'nullable|string|max:1000',
         ]);
 
+        // Validasi cart masih ada
+        if (empty($this->cart)) {
+            $this->dispatch('checkout-error', ['message' => 'Keranjang kosong!']);
+            return;
+        }
+
+        // Validasi menu masih tersedia
+        $menuIdsInCart = array_keys($this->cart);
+        $existingMenusCount = Menu::whereIn('id', $menuIdsInCart)->count();
+
+        if (count($menuIdsInCart) !== $existingMenusCount) {
+            session()->forget('cart');
+            $this->dispatch('checkout-error', ['message' => 'Beberapa item sudah tidak tersedia. Silakan pilih ulang.']);
+            return redirect()->route('menu.show', ['table' => $this->tableId]);
+        }
+
         DB::beginTransaction();
         try {
             $order = Order::create([
                 'table_id' => $this->tableId,
-                'customer_name' => $this->customerName,
+                'customer_name' => $this->customerName ?: 'Pelanggan',
+                'subtotal' => $this->subtotal,
+                'tax_amount' => $this->taxAmount,
+                'tax_rate' => $this->taxRate,
                 'total_price' => $this->totalPrice,
-                'status' => 'paid', // Asumsi pembayaran offline
+                'status' => 'pending',
                 'notes' => $this->notes,
+                'midtrans_order_id' => 'MW-' . time() . '-' . $this->tableId . '-' . uniqid(),
             ]);
 
             foreach ($this->cart as $menuId => $item) {
@@ -96,17 +115,17 @@ class CheckoutPage extends Component
             }
 
             DB::commit();
-
-            // PERBAIKAN: Panggil broadcast event setelah pesanan berhasil disimpan
-            broadcast(new OrderPaid($order))->toOthers();
-
             session()->forget(['cart', 'table_id']);
-            return redirect()->route('order.finish', $order->id);
 
+            // LANGSUNG REDIRECT KE HALAMAN PAYMENT (ganti yang lama)
+            return redirect()->route('payment.page', $order->id);
+
+            // Comment/hapus ini:
+            // $this->dispatchBrowserEvent('open-midtrans-payment', ['order_id' => $order->id]);
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error('Checkout Error: ' . $e->getMessage());
-            $this->dispatch('checkout-error', ['message' => 'Gagal memproses pesanan, silakan coba lagi.']);
+            $this->dispatch('checkout-error', ['message' => 'Gagal memproses pesanan']);
         }
     }
 }

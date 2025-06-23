@@ -5,8 +5,8 @@
         <!-- Konten Utama -->
         <main class="p-6 text-center">
 
-            {{-- Tampilkan pesan berbeda berdasarkan status --}}
-            @if($order->status === 'cancelled')
+            
+            <!--[if BLOCK]><![endif]--><?php if($order->status === 'cancelled'): ?>
                 <!-- Tampilan Pesanan Dibatalkan -->
                 <div class="w-16 h-16 bg-red-100 rounded-full mx-auto flex items-center justify-center">
                     <svg class="w-10 h-10 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -15,7 +15,7 @@
                 </div>
                 <h1 class="text-2xl font-bold text-gray-800 mt-4">Pesanan Dibatalkan</h1>
                 <p class="text-gray-600 mt-2">Mohon maaf, pesanan Anda telah dibatalkan. Silakan hubungi kasir untuk informasi lebih lanjut.</p>
-            @elseif($order->status === 'pending')
+            <?php elseif($order->status === 'pending'): ?>
                 <!-- Tampilan Pesanan Menunggu Pembayaran -->
                 <div class="w-16 h-16 bg-yellow-100 rounded-full mx-auto flex items-center justify-center">
                     <svg class="w-10 h-10 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,31 +24,32 @@
                 </div>
                 <h1 class="text-2xl font-bold text-gray-800 mt-4">Menunggu Pembayaran</h1>
                 <p class="text-gray-600 mt-2">Pesanan Anda telah diterima. Silakan lakukan pembayaran untuk melanjutkan.</p>
-            @else
+            <?php else: ?>
                 <!-- Tampilan Pesanan Berhasil -->
                 <div class="w-16 h-16 bg-green-100 rounded-full mx-auto flex items-center justify-center">
                     <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 </div>
                 <h1 class="text-2xl font-bold text-gray-800 mt-4">Terima Kasih!</h1>
                 <p class="text-gray-600 mt-2">Pesanan Anda telah kami terima dan sedang diproses.</p>
-            @endif
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
             <!-- Status Pesanan (Bisa Real-time) -->
             <div class="mt-8 text-left bg-white p-4 rounded-lg shadow">
-                <h2 class="font-bold text-lg mb-4">Status Pesanan #{{ $order->id }}</h2>
+                <h2 class="font-bold text-lg mb-4">Status Pesanan #<?php echo e($order->id); ?></h2>
                 <div class="flex items-center">
                     <span class="font-semibold mr-2">Status Saat Ini:</span>
                     <span
                         class="text-sm font-bold uppercase px-3 py-1 rounded-full
-                        @switch($order->status)
-                            @case('paid') bg-blue-200 text-blue-800 @break
-                            @case('processing') bg-yellow-200 text-yellow-800 @break
-                            @case('completed') bg-green-200 text-green-800 @break
-                            @case('cancelled') bg-red-200 text-red-800 @break
-                            @case('pending') bg-orange-200 text-orange-800 @break
-                            @default bg-gray-200 text-gray-800
-                        @endswitch">
-                        {{ $order->status }}
+                        <?php switch($order->status):
+                            case ('paid'): ?> bg-blue-200 text-blue-800 <?php break; ?>
+                            <?php case ('processing'): ?> bg-yellow-200 text-yellow-800 <?php break; ?>
+                            <?php case ('completed'): ?> bg-green-200 text-green-800 <?php break; ?>
+                            <?php case ('cancelled'): ?> bg-red-200 text-red-800 <?php break; ?>
+                            <?php case ('pending'): ?> bg-orange-200 text-orange-800 <?php break; ?>
+                            <?php default: ?> bg-gray-200 text-gray-800
+                        <?php endswitch; ?>">
+                        <?php echo e($order->status); ?>
+
                     </span>
                 </div>
             </div>
@@ -57,40 +58,41 @@
             <div class="mt-4 text-left bg-white p-4 rounded-lg shadow">
                 <h3 class="font-bold mb-2">Ringkasan:</h3>
                 <ul class="text-sm text-gray-600 space-y-1">
-                    @foreach($order->items as $item)
+                    <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $order->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <li class="flex justify-between">
-                            <span>{{ $item->quantity }}x {{ $item->menu->name ?? 'Menu Dihapus'}}</span>
-                            <span>Rp {{ number_format($item->price_at_order * $item->quantity, 0, ',', '.') }}</span>
+                            <span><?php echo e($item->quantity); ?>x <?php echo e($item->menu->name ?? 'Menu Dihapus'); ?></span>
+                            <span>Rp <?php echo e(number_format($item->price_at_order * $item->quantity, 0, ',', '.')); ?></span>
                         </li>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                 </ul>
                 <hr class="my-2">
                 <div class="flex justify-between font-bold">
                     <span>Total</span>
-                    <span>Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+                    <span>Rp <?php echo e(number_format($order->total_price, 0, ',', '.')); ?></span>
                 </div>
             </div>
 
             <!-- Tombol Aksi -->
             <div class="mt-8 space-y-4">
 
-                {{-- Tombol Bayar - Hanya muncul jika status pending --}}
-                @if($order->status === 'pending')
+                
+                <!--[if BLOCK]><![endif]--><?php if($order->status === 'pending'): ?>
                     <button wire:click="goToPayment"
                             class="block w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors">
                         Bayar Sekarang
                     </button>
-                @endif
+                <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
-                <a href="{{ route('menu.show', ['table' => $order->table_id]) }}" class="block w-full bg-amber-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-900">
+                <a href="<?php echo e(route('menu.show', ['table' => $order->table_id])); ?>" class="block w-full bg-amber-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-900">
                     Pesan Lagi
                 </a>
-                @if($order->status !== 'cancelled')
-                <a href="{{ route('order.invoice', $order->id) }}" class="block w-full bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300">
+                <!--[if BLOCK]><![endif]--><?php if($order->status !== 'cancelled'): ?>
+                <a href="<?php echo e(route('order.invoice', $order->id)); ?>" class="block w-full bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300">
                     Unduh Nota
                 </a>
-                @endif
+                <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
             </div>
         </main>
     </div>
 </div>
+<?php /**PATH D:\Kuliah\Semester 4\PWEB\meja-warunk\resources\views/livewire/order-status-page.blade.php ENDPATH**/ ?>

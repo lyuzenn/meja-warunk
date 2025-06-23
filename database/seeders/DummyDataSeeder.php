@@ -19,10 +19,16 @@ class DummyDataSeeder extends Seeder
     {
         // PERBAIKAN: Hanya hapus data transaksional (pesanan dan ulasan)
         // Ini akan menjaga data menu, meja, dan user Anda tetap aman.
+        if (DB::getDriverName() !== 'sqlite') {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        }
+
         Rating::truncate();
         Order::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        }
 
         $this->command->info('Data pesanan dan ulasan lama telah dihapus.');
 

@@ -8,9 +8,9 @@ use App\Http\Livewire\Admin\SalesReport;
 use App\Http\Livewire\ShowMenu;
 use App\Http\Livewire\RatingForm;
 use App\Http\Livewire\OrderStatusPage;
-use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\MidtransController;
+use App\Models\Order;
 
 
 
@@ -31,7 +31,7 @@ Route::get('/checkout', \App\Http\Livewire\CheckoutPage::class)->name('checkout'
 
 
 // Halaman untuk pelanggan melihat status pesanan mereka secara real-time
-Route::get('/order/{order}/status', OrderStatusPage::class)->name('order.finish');
+Route::get('/order/{order}/status', OrderStatusPage::class)->name('order.status');
 
 // Halaman untuk pelanggan memberikan rating setelah pesanan selesai
 Route::get('/order/{order}/rate', RatingForm::class)->name('order.rate');
@@ -73,3 +73,13 @@ Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function(){
 
 // Rute Webhook (Endpoint untuk menerima notifikasi dari Midtrans)
 Route::post('/midtrans/notification', [MidtransController::class, 'notificationHandler'])->name('midtrans.notification');
+
+
+// Halaman pembayaran simulasi
+Route::get('/payment/{order}', function(Order $order) {
+    return view('payment', compact('order'));
+})->name('payment.page');
+
+// API simulasi
+Route::post('/payment/create', [MidtransController::class, 'createPayment'])->name('payment.create');
+Route::post('/payment/simulate', [MidtransController::class, 'simulatePayment'])->name('payment.simulate');
