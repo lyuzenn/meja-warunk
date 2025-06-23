@@ -24,13 +24,33 @@
                 </div>
                 <h1 class="text-2xl font-bold text-gray-800 mt-4">Menunggu Pembayaran</h1>
                 <p class="text-gray-600 mt-2">Pesanan Anda telah diterima. Silakan lakukan pembayaran untuk melanjutkan.</p>
-            @else
-                <!-- Tampilan Pesanan Berhasil -->
-                <div class="w-16 h-16 bg-green-100 rounded-full mx-auto flex items-center justify-center">
-                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            @elseif($order->status === 'paid')
+                <!-- Tampilan Pesanan Sudah Dibayar -->
+                <div class="w-16 h-16 bg-blue-100 rounded-full mx-auto flex items-center justify-center">
+                    <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-800 mt-4">Terima Kasih!</h1>
-                <p class="text-gray-600 mt-2">Pesanan Anda telah kami terima dan sedang diproses.</p>
+                <h1 class="text-2xl font-bold text-gray-800 mt-4">Pembayaran Berhasil!</h1>
+                <p class="text-gray-600 mt-2">Pesanan Anda sudah dibayar dan sedang diproses oleh dapur.</p>
+            @elseif($order->status === 'processing')
+                <!-- Tampilan Pesanan Sedang Diproses -->
+                <div class="w-16 h-16 bg-purple-100 rounded-full mx-auto flex items-center justify-center">
+                    <svg class="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.334 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z"></path>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800 mt-4">Sedang Diproses</h1>
+                <p class="text-gray-600 mt-2">Pesanan Anda sedang diproses oleh dapur. Mohon tunggu sebentar.</p>
+            @elseif($order->status === 'completed')
+                <!-- Tampilan Pesanan Selesai -->
+                <div class="w-16 h-16 bg-green-100 rounded-full mx-auto flex items-center justify-center">
+                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800 mt-4">Pesanan Selesai!</h1>
+                <p class="text-gray-600 mt-2">Pesanan Anda sudah selesai dan siap disajikan. Terima kasih!</p>
             @endif
 
             <!-- Status Pesanan (Bisa Real-time) -->
@@ -82,14 +102,22 @@
                     </button>
                 @endif
 
-                <a href="{{ route('menu.show', ['table' => $order->table_id]) }}" class="block w-full bg-amber-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-900">
-                    Pesan Lagi
-                </a>
-                @if($order->status !== 'cancelled')
-                <a href="{{ route('order.invoice', $order->id) }}" class="block w-full bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300">
-                    Unduh Nota
-                </a>
+                {{-- Tombol Pesan Lagi - Hanya muncul jika status completed --}}
+                @if($order->status === 'completed')
+                    <a href="{{ route('menu.show', ['table' => $order->table_id]) }}"
+                       class="block w-full bg-amber-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-amber-900 transition-colors">
+                        Pesan Lagi
+                    </a>
                 @endif
+
+                {{-- Tombol Unduh Nota - Hanya muncul jika sudah dibayar (paid, processing, completed) --}}
+                @if(in_array($order->status, ['paid', 'processing', 'completed']))
+                    <a href="{{ route('order.invoice', $order->id) }}"
+                       class="block w-full bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition-colors">
+                        Unduh Nota
+                    </a>
+                @endif
+
             </div>
         </main>
     </div>
