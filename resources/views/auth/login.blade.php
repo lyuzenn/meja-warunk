@@ -1,16 +1,19 @@
 <x-guest-layout>
     <x-authentication-card>
         <x-slot name="logo">
-            <x-authentication-card-logo />
+            {{-- PERBAIKAN: Mengganti komponen logo dengan gambar PNG Anda --}}
+            <a href="/">
+                <img src="{{ asset('images/logo.png') }}" alt="MejaWarunk Logo" class="w-24 h-24">
+            </a>
         </x-slot>
 
         <x-validation-errors class="mb-4" />
 
-        @session('status')
+        @if (session('status'))
             <div class="mb-4 font-medium text-sm text-green-600">
-                {{ $value }}
+                {{ session('status') }}
             </div>
-        @endsession
+        @endif
 
         <form method="POST" action="{{ route('login') }}">
             @csrf
