@@ -15,8 +15,8 @@ class OrderDashboard extends Component
     public function getListeners()
     {
         return [
-            "echo:admin-dashboard,order.paid" => 'handleNewOrder',
-            "echo:admin-dashboard,order.status.updated" => 'refreshOrderList',
+            "echo:admin-dashboard,.order.paid" => 'handleNewOrder',
+            "echo:admin-dashboard,.order.status.updated" => 'refreshOrderList',
         ];
     }
 
@@ -34,38 +34,41 @@ class OrderDashboard extends Component
             ->get();
     }
 
-    /**
-     * PERBAIKAN: Method ini sekarang menerima data pesanan ($event)
-     * dan mengirimkan perintah notifikasi ke browser.
-     */
     public function handleNewOrder($event)
     {
-        Log::info('New order event received:', $event);
+        // PERBAIKAN: Menambahkan logging detail untuk debugging
+        Log::info('[LIVEWIRE DEBUG] Menerima event "order.paid". Payload mentah:', $event);
+
         $this->loadOrders();
 
-        // Mengirim event ke browser dengan pesan yang dinamis
+        // Mengambil nomor meja dari data event dengan aman
+        $tableNumber = data_get($event, 'order.table.table_number', 'N/A');
+
+        Log::info('[LIVEWIRE DEBUG] Nomor Meja yang diekstrak: ' . $tableNumber);
+
         $this->dispatch('new-order-notification', [
-            'message' => 'Pesanan baru dari Meja ' . ($event['order']['meja']['table_number'] ?? 'N/A')
+            'message' => 'Pesanan baru dari Meja ' . $tableNumber
         ]);
     }
 
     public function refreshOrderList($event)
     {
-        Log::info('Order status update event received:', $event);
-        $this->loadOrders();
+        $orderId = data_get($event, 'order.id');
+        if ($this->orders->contains('id', $orderId)) {
+            Log::info('Order status update event received BY LIVEWIRE:', $event);
+            $this->loadOrders();
+        }
     }
 
     public function updateOrderStatus($orderId, $status)
     {
         $order = Order::find($orderId);
-        if (!$order) {
-            return;
-        }
+        if (!$order) return;
 
         try {
             $order->status = $status;
             $order->save();
-            broadcast(new OrderStatusUpdated($order))->toOthers();
+            broadcast(new OrderStatusUpdated($order->load('table')))->toOthers();
             $this->loadOrders();
         } catch (Throwable $e) {
             Log::error('Failed to update or broadcast order status: ' . $e->getMessage());

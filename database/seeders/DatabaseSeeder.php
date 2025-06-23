@@ -18,7 +18,9 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             TableSeeder::class,
             MenuSeeder::class,
+            DummyRatingsSeeder::class,
             DummyDataSeeder::class,]);
+
     }
 }
 

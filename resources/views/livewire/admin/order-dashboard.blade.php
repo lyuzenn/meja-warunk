@@ -1,53 +1,78 @@
+{{-- PERBAIKAN: Semua logika Alpine.js disatukan dan dibuat lebih andal --}}
 <div x-data="{
+    // State untuk notifikasi pesanan baru
+    showOrderToast: false,
+    orderToastMessage: '',
+
+    // State untuk notifikasi status suara
+    showSoundToast: false,
+    soundToastMessage: '',
+
+    // State untuk saklar suara, disimpan di localStorage browser
     soundEnabled: localStorage.getItem('soundEnabled') === 'true',
+
+    // Fungsi yang dipanggil saat saklar suara diubah
     toggleSound() {
-        this.soundEnabled = !this.soundEnabled;
+        // Nilai soundEnabled sudah diubah oleh x-model, fungsi ini untuk efek tambahan
         localStorage.setItem('soundEnabled', this.soundEnabled);
+
+        this.soundToastMessage = this.soundEnabled ? 'Notifikasi suara diaktifkan.' : 'Notifikasi suara dinonaktifkan.';
+        this.showSoundToast = true;
+        setTimeout(() => this.showSoundToast = false, 3000);
+
         if (this.soundEnabled) {
-            // Coba putar suara sekali untuk mendapatkan izin dari browser
-            document.getElementById('notification-sound').play().catch(e => {
-                console.error('Gagal memutar suara, perlu interaksi pengguna.', e);
+            // Coba putar suara sekali untuk 'meminta izin' ke browser
+            this.$nextTick(() => {
+                document.getElementById('notification-sound')?.play().catch(e => console.warn('Browser memblokir pemutaran awal.'));
             });
         }
     }
-}">
-    {{-- Slot header untuk judul halaman --}}
+}" x-on:new-order-notification.window="
+    // PERBAIKAN: Mengambil data dari $event.detail[0]
+    orderToastMessage = $event.detail[0].message;
+    showOrderToast = true;
+    if (soundEnabled) {
+        $nextTick(() => {
+            document.getElementById('notification-sound')?.play().catch(e => console.error('Gagal memutar notifikasi:', e));
+        });
+    }
+    setTimeout(() => showOrderToast = false, 7000);
+">
+
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Dashboard Pesanan Masuk') }}
             </h2>
 
-            <div class="flex items-center space-x-6">
-                <button onclick="playTestSound()" class="text-sm font-medium text-blue-600 hover:underline">
-                    Tes Suara
-                </button>
-
-                <button @click="toggleSound()" class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700">
-                    <svg x-show="soundEnabled" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707a1 1 0 011.414 0v14.142a1 1 0 01-1.414 0L5.586 15z" /></svg>
-                    <svg x-show="!soundEnabled" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707a1 1 0 011.414 0v14.142a1 1 0 01-1.414 0L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
-                    <span x-text="soundEnabled ? 'Suara Aktif' : 'Suara Mati'"></span>
-                </button>
-            </div>
+            <!-- Toggle Switch yang lebih baik dan terintegrasi -->
+            <label for="sound-toggle" class="flex items-center cursor-pointer">
+                <span class="mr-3 text-sm font-medium text-gray-700">Suara Notifikasi</span>
+                <div class="relative">
+                    <input type="checkbox" id="sound-toggle" class="sr-only" x-model="soundEnabled" @change="toggleSound">
+                    <div class="block bg-gray-300 w-11 h-6 rounded-full transition-colors" :class="{ 'bg-green-500': soundEnabled }"></div>
+                    <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform" :class="{ 'translate-x-full': soundEnabled }"></div>
+                </div>
+            </label>
         </div>
     </x-slot>
 
-    <!-- Toast Notifikasi (menggunakan Alpine.js) -->
+    <!-- Toast untuk Notifikasi Pesanan Baru -->
     <div
-        x-data="{ show: false, message: '' }"
-        x-on:new-order-notification.window="
-            show = true;
-            message = $event.detail.message;
-            if (localStorage.getItem('soundEnabled') === 'true') {
-                document.getElementById('notification-sound').play().catch(e => console.error('Gagal memutar notifikasi otomatis:', e));
-            }
-            setTimeout(() => show = false, 7000)
-        "
-        x-show="show"
+        x-show="showOrderToast"
         x-transition
         class="fixed top-24 right-5 bg-green-600 text-white py-3 px-5 rounded-lg shadow-lg z-50"
         style="display: none;">
-        <p x-text="message"></p>
+        <p x-text="orderToastMessage"></p>
+    </div>
+
+    <!-- Toast untuk Status Suara -->
+    <div
+        x-show="showSoundToast"
+        x-transition
+        class="fixed top-40 right-5 bg-blue-500 text-white py-3 px-5 rounded-lg shadow-lg z-50"
+        style="display: none;">
+        <p x-text="soundToastMessage"></p>
     </div>
 
     <!-- Elemen Audio untuk Suara Notifikasi -->
@@ -56,7 +81,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <div wire:poll.5s="loadOrders" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @forelse ($orders as $order)
                         @php
                             $borderColorClass = match ($order->status) {
@@ -142,28 +167,4 @@
             </div>
         </div>
     </div>
-
-    @push('scripts')
-    <script>
-        // Mendefinisikan fungsi tes suara di scope global agar bisa dipanggil oleh onclick
-        function playTestSound() {
-            console.log('Tombol Tes Suara diklik!');
-            const audio = document.getElementById('notification-sound');
-
-            if (audio) {
-                console.log('Elemen audio ditemukan. Mencoba memutar dari:', audio.src);
-                audio.play()
-                    .then(() => {
-                        console.log('Suara berhasil diputar.');
-                    })
-                    .catch(e => {
-                        console.error('Error saat memutar suara:', e);
-                        alert('Browser memblokir pemutaran suara. Coba aktifkan saklar suara, lalu coba tes lagi.');
-                    });
-            } else {
-                console.error('Elemen audio dengan ID "notification-sound" tidak ditemukan!');
-            }
-        }
-    </script>
-    @endpush
 </div>

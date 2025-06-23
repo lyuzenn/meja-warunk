@@ -5,7 +5,7 @@
         <!-- Konten Utama -->
         <main class="p-6 text-center">
 
-            {{-- PERBAIKAN: Tampilkan pesan berbeda jika statusnya 'cancelled' --}}
+            {{-- Tampilkan pesan berbeda jika statusnya 'cancelled' --}}
             @if($order->status === 'cancelled')
                 <!-- Tampilan Pesanan Dibatalkan -->
                 <div class="w-16 h-16 bg-red-100 rounded-full mx-auto flex items-center justify-center">
@@ -30,7 +30,6 @@
                 <div class="flex items-center">
                     <span class="font-semibold mr-2">Status Saat Ini:</span>
                     <span
-                        wire:poll.5s="refreshOrder"
                         class="text-sm font-bold uppercase px-3 py-1 rounded-full
                         @switch($order->status)
                             @case('paid') bg-blue-200 text-blue-800 @break

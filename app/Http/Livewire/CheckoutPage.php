@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Menu;
 use App\Models\Order;
+use App\Events\OrderPaid; // <-- Import event OrderPaid
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -95,6 +96,10 @@ class CheckoutPage extends Component
             }
 
             DB::commit();
+
+            // PERBAIKAN: Panggil broadcast event setelah pesanan berhasil disimpan
+            broadcast(new OrderPaid($order))->toOthers();
+
             session()->forget(['cart', 'table_id']);
             return redirect()->route('order.finish', $order->id);
 

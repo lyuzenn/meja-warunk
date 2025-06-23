@@ -30,7 +30,6 @@
                 <div class="flex items-center">
                     <span class="font-semibold mr-2">Status Saat Ini:</span>
                     <span
-                        wire:poll.5s="refreshOrder"
                         class="text-sm font-bold uppercase px-3 py-1 rounded-full
                         <?php switch($order->status):
                             case ('paid'): ?> bg-blue-200 text-blue-800 <?php break; ?>
